@@ -1,5 +1,19 @@
 package com.example.demo.dto;
 
-public class HODDTORequest {
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class HODDTORequest {
+	
+	private Integer id;
+	private String name;
+	private String mob;
+	private Float exp;
+	private String email;
+	private String dept;
+	private String roll;
 }
