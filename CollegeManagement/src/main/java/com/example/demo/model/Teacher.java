@@ -19,5 +19,5 @@ public class Teacher {
 	private String pass;
 	private String email;
 	private String mob;
-	private String roll;
+	private String role;
 }

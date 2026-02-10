@@ -21,5 +21,5 @@ public class HOD {
 	private String pass;
 	private String email;
 	private String dept;
-	private String roll;
+	private String role;
 }
