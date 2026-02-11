@@ -5,6 +5,8 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.example.demo.dto.HODDTORequest;
+import com.example.demo.dto.HodDTOResponse;
 import com.example.demo.exception.InvalidDept;
 import com.example.demo.exception.validUser;
 import com.example.demo.model.HOD;
@@ -20,50 +22,63 @@ public class HODServicesImpl implements HODServices {
 	private validUser vu;
 	
 	@Override
-	public void add(HOD hod) {
+	public void addHOD(HODDTORequest h) {
 		
-		String dept=hod.getDept();
+		String dept=h.getDept();
 		
-		vu.validId(hod.getId());
+		vu.validId(h.getId());
 		
-		vu.validEmail(hod.getEmail());
+		vu.validEmail(h.getEmail());
 		
-		vu.validMob(hod.getMob());
+		vu.validMob(h.getMob());
+		
+		if (dept == null) {
+		    throw new InvalidDept("Department cannot be null");
+		}
 		
 		if(!(dept.equalsIgnoreCase("BCA") || dept.equalsIgnoreCase("BCS") || dept.equalsIgnoreCase("IT") || dept.equalsIgnoreCase("CS") || dept.equalsIgnoreCase("ENTC")))
 			throw new InvalidDept("Invalid Department");
 			
+		HOD hod=HODDTORequest.toEntiyHod(h);
 		hr.save(hod);
 	}
 
 	@Override
-	public List<HOD> display() {
-		return hr.findAll();
+	public List<HodDTOResponse> display() {
+		return hr.findAll().stream().map(HodDTOResponse::toResponseHod).toList();
 	}
 
 	@Override
-	public HOD search(Integer id) {	
+	public HodDTOResponse search(Integer id) {	
 		vu.validId(id);
-		return hr.findById(id).orElse(null);
+		HOD hod=hr.findById(id).orElseThrow(()->new RuntimeException("HOD not found !"));		
+		return HodDTOResponse.toResponseHod(hod);
 	}
 
 	@Override
-	public HOD update(HOD hod, Integer id) {
+	public HodDTOResponse update(HODDTORequest dto, Integer id) {
+		vu.validId(id);
+		HOD hod=hr.findById(id).orElseThrow(()->new RuntimeException("HOD not found !"));
 		
-		return null;
+		hod.setName(dto.getName());
+		hod.setEmail(dto.getEmail());
+		hod.setExp(dto.getExp());
+		hod.setMob(dto.getMob());
+		hod.setDept(dto.getDept());
+		
+		hr.save(hod);
+	
+		return HodDTOResponse.toResponseHod(hod);
 	}
 
 	@Override
-	public HOD delete(Integer id) {
+	public HodDTOResponse delete(Integer id) {
 		
 		vu.validId(id);
+		HOD hod=hr.findById(id).orElseThrow(()->new RuntimeException("HOD not found !"));
+		hr.delete(hod);
 		
-		if(hr.findById(id).isPresent()) {
-			HOD temp=hr.findById(id).get();
-			hr.deleteById(id);
-			return temp;
-		}
-		return null;
+		return HodDTOResponse.toResponseHod(hod);		
 	}
 
 	

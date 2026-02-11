@@ -5,6 +5,8 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.example.demo.dto.StudentDTORequest;
+import com.example.demo.dto.StudentDTOResponse;
 import com.example.demo.exception.validUser;
 import com.example.demo.model.Student;
 import com.example.demo.repository.StudentRepository;
@@ -20,46 +22,54 @@ public class StudentServicesimp implements StudentServices {
 	private validUser vu;
 	
 	@Override
-	public void add(Student s) {
+	public void add(StudentDTORequest s) {
 		vu.validId(s.getRollNo());
 		vu.validEmail(s.getEmail());
 		vu.validMob(s.getMob());
-		sr.save(s);
+		Student student=StudentDTORequest.toEntityStudent(s);
+		sr.save(student);
 	}
 
 	@Override
-	public List<Student> display() {		
-		return sr.findAll();
+	public List<StudentDTOResponse> display() {		
+		return sr.findAll().stream().map(StudentDTOResponse::toStudentDTOResponse).toList();
 	}
 
 	@Override
-	public Student update(Student s, Integer id) {
-		// TODO Auto-generated method stub
-		return null;
+	public StudentDTOResponse update(StudentDTORequest dto, Integer id) {
+		
+		Student student=sr.findById(id).orElseThrow(()->new RuntimeException("Student Not Found !"));
+		
+		student.setName(dto.getName());
+		student.setEmail(dto.getEmail());
+		student.setMob(dto.getMob());
+		student.setDiv(dto.getDiv());
+		student.setYear(dto.getYear());
+		student.setMarks(dto.getMarks());
+		
+		sr.save(student);
+		
+		return StudentDTOResponse.toStudentDTOResponse(student);
 	}
 
 	@Override
-	public Student search(Integer id) {
+	public StudentDTOResponse search(Integer id) {
+		
+		vu.validId(id);
+		Student student=sr.findById(id).orElseThrow(()->new RuntimeException("Student Not Found !"));
+		
+		return StudentDTOResponse.toStudentDTOResponse(student);
+	}
+
+	@Override
+	public StudentDTOResponse delete(Integer id) {
 		
 		vu.validId(id);
 		
-		if(sr.findById(id).isPresent()) {
-			return sr.findById(id).get();
-		}
-		return null;
-	}
-
-	@Override
-	public Student delete(Integer id) {
+		Student student=sr.findById(id).orElseThrow(()->new RuntimeException("Student Not Found !"));
 		
-		vu.validId(id);
+		return StudentDTOResponse.toStudentDTOResponse(student);
 		
-		if(sr.findById(id).isPresent()) {
-			Student temp=sr.findById(id).get();
-			sr.deleteById(id);
-			return temp;
-		}
-		return null;
 	}
 
 }

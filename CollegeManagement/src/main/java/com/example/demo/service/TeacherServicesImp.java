@@ -5,6 +5,8 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.example.demo.dto.TeacherDTORequest;
+import com.example.demo.dto.TeacherDTOResponse;
 import com.example.demo.exception.validUser;
 import com.example.demo.model.Teacher;
 import com.example.demo.repository.TeacherRepository;
@@ -20,50 +22,51 @@ public class TeacherServicesImp implements TeacherServices {
 	
 	
 	@Override
-	public void add(Teacher t) {
+	public void add(TeacherDTORequest t) {
 		
 		vu.validEmail(t.getEmail());
 		vu.validId(t.getId());
 		vu.validMob(t.getMob());
 		
+		Teacher teacher=TeacherDTORequest.toEntityTeacher(t);
 		
-		tr.save(t);
+		tr.save(teacher);
 	}
 
 	@Override
-	public List<Teacher> display() {
-		return tr.findAll();
+	public List<TeacherDTOResponse> display() {
+		return tr.findAll().stream().map(TeacherDTOResponse::toTeacherDTOResponse).toList();
 	}
 
 	@Override
-	public Teacher search(Integer id) {
-		
-		vu.validId(id);
-
-		if(tr.findById(id).isPresent()) {
-			return tr.findById(id).get();
-		}
-		return null;
-	}
-
-	@Override
-	public Teacher update(Teacher t, Integer id) {
-		t.setId(id);
-		tr.save(t);
-		return tr.findById(id).get();
-	}
-
-	@Override
-	public Teacher delete(Integer id) {
+	public TeacherDTOResponse search(Integer id) {
 		
 		vu.validId(id);
+		Teacher teacher=tr.findById(id).orElseThrow(()->new RuntimeException("Teacher not found !"));
+		return TeacherDTOResponse.toTeacherDTOResponse(teacher);
+	}
+
+	@Override
+	public TeacherDTOResponse update(TeacherDTORequest dto, Integer id) {
+		Teacher teacher=tr.findById(id).orElseThrow(()->new RuntimeException("Teacher Not found !!"));
 		
-		if(tr.findById(id).isPresent()) {
-			Teacher temp=tr.findById(id).get();
-			tr.deleteById(id);
-			return temp;
-		}
-		return null;
+		teacher.setName(dto.getName());
+		teacher.setEmail(dto.getEmail());
+		teacher.setMob(dto.getMob());
+
+		tr.save(teacher);		
+		return TeacherDTOResponse.toTeacherDTOResponse(teacher);
+	}
+
+	@Override
+	public TeacherDTOResponse delete(Integer id) {
+		
+		vu.validId(id);
+		
+		Teacher teacher=tr.findById(id).orElseThrow(()->new RuntimeException("Teacher not found"));
+		tr.delete(teacher);
+	
+		return TeacherDTOResponse.toTeacherDTOResponse(teacher);
 	}
 
 }
